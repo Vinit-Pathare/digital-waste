@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Digital Waste Intelligence Platform</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <header>
+      <h1>Digital Waste Intelligence Platform</h1>
+      <p>pune pilot project</p>
+    </header>
+    <div class="container">
+      <div class="card">
+        <h3>User Registration</h3>
+
+        <input type="text" id="username" placeholder="Enter Your name " />
+        <br />
+
+        <button onclick="registerUser()">Register</button>
+        <p id="message"></p>
+        <p>Total Users: <span id="count">0</span></p>
+      </div>
+    </div>
+    <footer>
+      © 2026 Digital Waste Intelligence Platform | Pune Pilot | Hexacore
+    </footer>
+    <script>
+      let userCount = 0;
+
+      function registerUser() {
+        let name = document.getElementById("username").value;
+
+        if (name === "") {
+          document.getElementById("message").innerText =
+            "Please enter your name";
+          return;
+        }
+
+        userCount++;
+        document.getElementById("count").innerText = userCount;
+        document.getElementById("message").innerText =
+          "User Registered Successfully!";
+        document.getElementById("username").value = "";
+      }
+    </script>
+  </body>
+</html>
