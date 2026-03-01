@@ -1,32 +1,48 @@
 <!doctype html>
 <html>
   <head>
-    <title>Digital Waste Intelligence Platform</title>
+    <title>digital waste</title>
     <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
     <header>
       <h1>Digital Waste Intelligence Platform</h1>
-      <p>pune pilot project</p>
+      <p>Pune Pilot Project</p>
     </header>
+
     <div class="container">
+      <!-- User Registration Card -->
       <div class="card">
         <h3>User Registration</h3>
 
-        <input type="text" id="username" placeholder="Enter Your name " />
+        <input type="text" id="username" placeholder="Enter Your Name" />
         <br />
 
         <button onclick="registerUser()">Register</button>
+
         <p id="message"></p>
         <p>Total Users: <span id="count">0</span></p>
       </div>
+
+      <!-- Complaint Card -->
+      <div class="card">
+        <h3>Report Complaint</h3>
+
+        <button onclick="addComplaint()">Report Now</button>
+
+        <p id="complaintMsg"></p>
+        <p>Total Complaints: <span id="complaintCount">0</span></p>
+      </div>
     </div>
+
     <footer>
       © 2026 Digital Waste Intelligence Platform | Pune Pilot | Hexacore
     </footer>
+
     <script>
       let userCount = 0;
+      let complaintCounter = 0;
 
       function registerUser() {
         let name = document.getElementById("username").value;
@@ -42,6 +58,18 @@
         document.getElementById("message").innerText =
           "User Registered Successfully!";
         document.getElementById("username").value = "";
+      }
+
+      function addComplaint() {
+        complaintCounter++;
+
+        document.getElementById("complaintCount").innerText = complaintCounter;
+
+        let time = new Date();
+        console.log("Complaint registered at: " + time);
+
+        document.getElementById("complaintMsg").innerText =
+          "Complaint Registered Successfully!";
       }
     </script>
   </body>
