@@ -3,6 +3,8 @@
   <head>
     <title>Digital Waste Intelligence Platform</title>
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   </head>
 
   <body>
@@ -29,7 +31,8 @@
         <p id="message"></p>
         <p>Total Users: <span id="count">0</span></p>
       </div>
-
+      <h3>Live Vehicle Tracking</h3>
+      <div id="map" style="height: 400px; width: 100%"></div>
       <!-- COMPLAINT -->
       <div class="card">
         <h3>Report Complaint</h3>
@@ -46,7 +49,12 @@
         <ul id="complaintList"></ul>
         <p>Total Complaints: <span id="totalComplaints">0</span></p>
       </div>
-
+      <input
+        type="file"
+        id="photoInput"
+        accept="image/*"
+        capture="environment"
+      />
       <!-- PICKUP REMINDER (DAY 8 NEW) -->
       <div class="card">
         <h3>Pickup Reminder</h3>
@@ -70,242 +78,21 @@
       <p>Total Users: <span id="adminUsers">0</span></p>
       <p>Total Complaints: <span id="adminComplaints">0</span></p>
       <p>Total Pickups: <span id="adminPickups">0</span></p>
+
+      <h4>Filter Complaints by User</h4>
+
+      <select id="userFilter" onchange="filterComplaints()">
+        <option value="all">Show All</option>
+      </select>
+      <h4>Filter Complaints by Date</h4>
+      From: <input type="date" id="fromDate" /> To:
+      <input type="date" id="toDate" />
+      <button onclick="filterComplaintsByDate()">Filter</button>
     </div>
 
     <footer>
       © 2026 Digital Waste Intelligence Platform | Pune Pilot | Hexacore
     </footer>
-
-    <script>
-      let users = [];
-      let currentUser = null;
-      let pickups = [];
-
-      /* ---------- PAGE LOAD ---------- */
-
-      window.onload = function () {
-        let savedUsers = localStorage.getItem("users");
-        if (savedUsers) {
-          users = JSON.parse(savedUsers);
-          document.getElementById("count").innerText = users.length;
-        }
-
-        let savedCurrentUser = localStorage.getItem("currentUser");
-        if (savedCurrentUser) {
-          currentUser = savedCurrentUser;
-          document.getElementById("welcomeMessage").innerText =
-            "Welcome, " + currentUser;
-        }
-
-        let savedComplaints = localStorage.getItem("complaints");
-        if (savedComplaints) {
-          document.getElementById("complaintList").innerHTML = savedComplaints;
-          updateComplaintCounter();
-        }
-
-        let savedPickups = localStorage.getItem("pickups");
-        if (savedPickups) {
-          document.getElementById("pickupList").innerHTML = savedPickups;
-          updatePickupCounter();
-        }
-      };
-
-      /* ---------- REGISTER ---------- */
-
-      function registerUser() {
-        let name = document.getElementById("username").value.trim();
-
-        if (name === "") {
-          document.getElementById("message").innerText = "Enter name.";
-          return;
-        }
-
-        if (!users.includes(name)) {
-          users.push(name);
-          localStorage.setItem("users", JSON.stringify(users));
-          document.getElementById("count").innerText = users.length;
-          document.getElementById("message").innerText =
-            "Registered Successfully!";
-        } else {
-          document.getElementById("message").innerText = "User already exists!";
-        }
-
-        document.getElementById("username").value = "";
-      }
-
-      /* ---------- LOGIN ---------- */
-
-      function loginUser() {
-        let name = document.getElementById("loginUsername").value.trim();
-
-        if (name === "") {
-          document.getElementById("loginMessage").innerText = "Enter username!";
-          return;
-        }
-
-        // ADMIN LOGIN
-        if (name === "admin") {
-          currentUser = "admin";
-          localStorage.setItem("currentUser", currentUser);
-
-          document.getElementById("loginMessage").innerText =
-            "Admin Login Successful!";
-          document.getElementById("welcomeMessage").innerText = "Welcome Admin";
-
-          showAdminPanel();
-          return;
-        }
-
-        // NORMAL USER LOGIN
-        if (!users.includes(name)) {
-          document.getElementById("loginMessage").innerText = "User not found!";
-          return;
-        }
-
-        currentUser = name;
-        localStorage.setItem("currentUser", currentUser);
-
-        document.getElementById("loginMessage").innerText = "Login Successful!";
-        document.getElementById("welcomeMessage").innerText =
-          "Welcome, " + currentUser;
-
-        document.getElementById("adminPanel").style.display = "none";
-      }
-
-      /* ---------- ADD COMPLAINT ---------- */
-
-      function addComplaint() {
-        if (!currentUser) {
-          alert("Login first!");
-          return;
-        }
-
-        let text = document.getElementById("complaintText").value.trim();
-        let category = document.getElementById("category").value;
-
-        if (text === "") {
-          document.getElementById("complaintMsg").innerText =
-            "Enter complaint.";
-          return;
-        }
-
-        let time = new Date().toLocaleString();
-        let li = document.createElement("li");
-
-        li.innerHTML =
-          text +
-          " | " +
-          category +
-          " | " +
-          time +
-          " | by: " +
-          currentUser +
-          ' <button onclick="deleteItem(this)">Delete</button>';
-
-        document.getElementById("complaintList").appendChild(li);
-
-        document.getElementById("complaintText").value = "";
-        document.getElementById("complaintMsg").innerText =
-          "Complaint Submitted!";
-
-        localStorage.setItem(
-          "complaints",
-          document.getElementById("complaintList").innerHTML,
-        );
-
-        updateComplaintCounter();
-      }
-
-      function showAdminPanel() {
-        document.getElementById("adminPanel").style.display = "block";
-
-        document.getElementById("adminUsers").innerText = users.length;
-
-        document.getElementById("adminComplaints").innerText =
-          document.getElementById("complaintList").children.length;
-
-        document.getElementById("adminPickups").innerText =
-          document.getElementById("pickupList").children.length;
-      }
-      /* ---------- PICKUP REMINDER ---------- */
-
-      function addPickup() {
-        if (!currentUser) {
-          alert("Login first!");
-          return;
-        }
-
-        let date = document.getElementById("pickupDate").value;
-        let type = document.getElementById("pickupType").value;
-
-        if (date === "") {
-          alert("Select date and time!");
-          return;
-        }
-
-        let li = document.createElement("li");
-
-        li.innerHTML =
-          date +
-          " | " +
-          type +
-          " | by: " +
-          currentUser +
-          ' <button onclick="deleteItem(this)">Delete</button>';
-
-        document.getElementById("pickupList").appendChild(li);
-
-        document.getElementById("pickupDate").value = "";
-
-        localStorage.setItem(
-          "pickups",
-          document.getElementById("pickupList").innerHTML,
-        );
-
-        updatePickupCounter();
-      }
-
-      /* ---------- DELETE (COMMON) ---------- */
-
-      function deleteItem(button) {
-        button.parentElement.remove();
-        localStorage.setItem(
-          "complaints",
-          document.getElementById("complaintList").innerHTML,
-        );
-        localStorage.setItem(
-          "pickups",
-          document.getElementById("pickupList").innerHTML,
-        );
-
-        updateComplaintCounter();
-        updatePickupCounter();
-      }
-
-      /* ---------- COUNTERS ---------- */
-
-      /* ---------- COUNTERS ---------- */
-
-      function updateComplaintCounter() {
-        let total = document.getElementById("complaintList").children.length;
-
-        document.getElementById("totalComplaints").innerText = total;
-
-        if (currentUser === "admin") {
-          document.getElementById("adminComplaints").innerText = total;
-        }
-      }
-
-      function updatePickupCounter() {
-        let total = document.getElementById("pickupList").children.length;
-
-        document.getElementById("totalPickups").innerText = total;
-
-        if (currentUser === "admin") {
-          document.getElementById("adminPickups").innerText = total;
-        }
-      }
-    </script>
+    <script src="script.js"></script>
   </body>
 </html>
-
