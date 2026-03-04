@@ -280,29 +280,59 @@ function addComplaint() {
   const reader = new FileReader();
 
   reader.onload = function (e) {
-    const photoData = e.target.result;
+    const photoData = e.target.result; // 🔥 VERY IMPORTANT LINE
 
-    const newComplaint = {
-      text,
-      category,
-      user: currentUser,
-      time: new Date().toISOString(),
-      lat: liveLat,
-      lng: liveLng,
-      photo: photoData,
-      status: "Pending",
-    };
+    fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${liveLat}&lon=${liveLng}`,
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        const address =
+          data && data.display_name ? data.display_name : "Location captured";
 
-    complaints.push(newComplaint);
-    localStorage.setItem("complaints", JSON.stringify(complaints));
+        const newComplaint = {
+          text,
+          category,
+          user: currentUser,
+          time: new Date().toISOString(),
+          lat: liveLat,
+          lng: liveLng,
+          address: address,
+          photo: photoData,
+          status: "Pending",
+        };
 
-    renderComplaints();
-    addComplaintMarker(newComplaint);
+        complaints.push(newComplaint);
+        localStorage.setItem("complaints", JSON.stringify(complaints));
 
-    document.getElementById("complaintText").value = "";
-    document.getElementById("photoInput").value = "";
+        renderComplaints();
+        updateDashboardCounts();
 
-    alert("Complaint Submitted with Photo!");
+        alert("Complaint Submitted!");
+      })
+      .catch((error) => {
+        console.log("Address fetch error:", error);
+
+        const newComplaint = {
+          text,
+          category,
+          user: currentUser,
+          time: new Date().toISOString(),
+          lat: liveLat,
+          lng: liveLng,
+          address: "Location captured (address unavailable)",
+          photo: photoData,
+          status: "Pending",
+        };
+
+        complaints.push(newComplaint);
+        localStorage.setItem("complaints", JSON.stringify(complaints));
+
+        renderComplaints();
+        updateDashboardCounts();
+
+        alert("Complaint Submitted (Address unavailable)");
+      });
   };
 
   reader.readAsDataURL(photoFile);
@@ -373,26 +403,51 @@ function showMessage(id, msg) {
   document.getElementById(id).innerText = msg;
 }
 //Complaintmarker
-
 function addComplaintMarker(c) {
-  if (!map) return;
+  if (!map || !c.lat || !c.lng) return;
 
-  const marker = L.marker([c.lat, c.lng], { icon: garbageIcon }).addTo(map);
+  // Status icon select
+  const iconToUse = c.status === "Resolved" ? resolvedIcon : pendingIcon;
 
-  marker.bindPopup(`
-    <b>${c.category}</b><br>
-    ${c.text}<br>
-    By: ${c.user}<br>
-    Status: ${c.status}<br><br>
-    <img src="${c.photo}" width="150"><br><br>
-    <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" 
-       target="_blank">
-       🚗 Navigate
-    </a>
-  `);
+  // Marker create
+  const marker = L.marker([c.lat, c.lng], {
+    icon: iconToUse,
+  }).addTo(map);
+
+  // Photo check
+  const photoHTML = c.photo
+    ? `<img src="${c.photo}" width="160" style="border-radius:8px;"><br><br>`
+    : `<i>No photo uploaded</i><br><br>`;
+
+  // Address check
+  const addressText = c.address ? c.address : "Address not available";
+
+  // Popup content
+  const popupContent = `
+    <div style="width:200px;">
+      <b>Category:</b> ${c.category} <br>
+      <b>Description:</b> ${c.text} <br>
+      <b>By:</b> ${c.user} <br>
+      <b>Status:</b> ${c.status} <br><br>
+
+      <b>Address:</b><br>
+      ${addressText} <br><br>
+
+      ${photoHTML}
+
+      <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" 
+         target="_blank"
+         style="color:blue; font-weight:bold;">
+         🚗 Navigate
+      </a>
+    </div>
+  `;
+
+  marker.bindPopup(popupContent);
 
   complaintMarkers.push(marker);
 }
+//togglestatus
 function toggleStatus(index) {
   complaints[index].status =
     complaints[index].status === "Pending" ? "Resolved" : "Pending";
