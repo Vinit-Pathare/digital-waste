@@ -1,98 +1,163 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Digital Waste Intelligence Platform</title>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  </head>
 
-  <body>
-    <header>
-      <h1>Digital Waste Intelligence Platform</h1>
-      <p>Pune Pilot Project</p>
-    </header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Digital Waste Intelligence Platform</title>
 
-    <div class="container">
-      <!-- LOGIN -->
-      <div class="card">
-        <h3>User Login</h3>
-        <input type="text" id="loginUsername" placeholder="Enter Your Name" />
-        <button onclick="loginUser()">Login</button>
-        <p id="loginMessage"></p>
-        <p id="welcomeMessage"></p>
-      </div>
+<link rel="stylesheet" href="style.css">
 
-      <!-- REGISTER -->
-      <div class="card">
-        <h3>User Registration</h3>
-        <input type="text" id="username" placeholder="Enter Your Name" />
-        <button onclick="registerUser()">Register</button>
-        <p id="message"></p>
-        <p>Total Users: <span id="count">0</span></p>
-      </div>
-      <h3>Live Vehicle Tracking</h3>
-      <div id="map" style="height: 400px; width: 100%"></div>
-      <!-- COMPLAINT -->
-      <div class="card">
-        <h3>Report Complaint</h3>
-        <input type="text" id="complaintText" placeholder="Enter Complaint" />
-        <select id="category">
-          <option value="Garbage">Garbage</option>
-          <option value="Missed Pickup">Missed Pickup</option>
-          <option value="Other">Other</option>
-        </select>
-        <button onclick="addComplaint()">Submit</button>
-        <p id="complaintMsg"></p>
+<!-- Leaflet Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-        <h4>Complaint List</h4>
-        <ul id="complaintList"></ul>
-        <p>Total Complaints: <span id="totalComplaints">0</span></p>
-      </div>
-      <input
-        type="file"
-        id="photoInput"
-        accept="image/*"
-        capture="environment"
-      />
-      <!-- PICKUP REMINDER (DAY 8 NEW) -->
-      <div class="card">
-        <h3>Pickup Reminder</h3>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
-        <input type="datetime-local" id="pickupDate" />
-        <select id="pickupType">
-          <option value="Garbage">Garbage</option>
-          <option value="Organic">Organic</option>
-          <option value="Other">Other</option>
-        </select>
+</head>
 
-        <button onclick="addPickup()">Add Reminder</button>
+<body>
 
-        <h4>Pickup Schedule</h4>
-        <ul id="pickupList"></ul>
-        <p>Total Pickups: <span id="totalPickups">0</span></p>
-      </div>
-    </div>
-    <div class="card" id="adminPanel" style="display: none">
-      <h3>Admin Dashboard</h3>
-      <p>Total Users: <span id="adminUsers">0</span></p>
-      <p>Total Complaints: <span id="adminComplaints">0</span></p>
-      <p>Total Pickups: <span id="adminPickups">0</span></p>
+<header>
+<h1>Digital Waste Intelligence Platform</h1>
+<p>Pune Pilot Project</p>
+</header>
 
-      <h4>Filter Complaints by User</h4>
+<div class="container">
 
-      <select id="userFilter" onchange="filterComplaints()">
-        <option value="all">Show All</option>
-      </select>
-      <h4>Filter Complaints by Date</h4>
-      From: <input type="date" id="fromDate" /> To:
-      <input type="date" id="toDate" />
-      <button onclick="filterComplaintsByDate()">Filter</button>
-    </div>
+<!-- LOGIN -->
+<div class="card">
+<h3>User Login</h3>
 
-    <footer>
-      © 2026 Digital Waste Intelligence Platform | Pune Pilot | Hexacore
-    </footer>
-    <script src="script.js"></script>
-  </body>
+<input id="loginUsername" placeholder="Username">
+<input type="password" id="loginPassword" placeholder="Password">
+
+<button onclick="loginUser()">Login</button>
+
+<p id="loginMessage"></p>
+<p id="welcomeMessage"></p>
+</div>
+
+
+<!-- REGISTER -->
+<div class="card">
+<h3>User Registration</h3>
+
+<input id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+
+<button onclick="registerUser()">Register</button>
+
+<p id="message"></p>
+<p>Total Users: <span id="count">0</span></p>
+</div>
+
+
+<!-- MAP -->
+<h3>Live Garbage Vehicle Tracking</h3>
+<div id="map" style="height:400px;width:100%"></div>
+
+
+<!-- REPORT COMPLAINT -->
+<div class="card">
+
+<h3>Report Complaint</h3>
+
+<input type="text" id="complaintText" placeholder="Enter Complaint">
+
+<select id="category">
+<option value="Garbage">Garbage</option>
+<option value="Missed Pickup">Missed Pickup</option>
+<option value="Other">Other</option>
+</select>
+
+<button onclick="addComplaint()">Submit Complaint</button>
+
+<p id="complaintMsg"></p>
+
+<h4>Complaint List</h4>
+
+<ul id="complaintList"></ul>
+
+<p>Total Complaints: <span id="totalComplaints">0</span></p>
+
+</div>
+
+
+<!-- PHOTO UPLOAD -->
+<div class="card">
+
+<h3>Upload Complaint Photo</h3>
+
+<input type="file" id="photoInput" accept="image/*" capture="environment">
+
+<button onclick="uploadPhoto()">Upload Photo</button>
+
+<p id="photoMsg"></p>
+
+</div>
+
+
+<!-- PICKUP REMINDER -->
+<div class="card">
+
+<h3>Pickup Reminder</h3>
+
+<input type="datetime-local" id="pickupDate">
+
+<select id="pickupType">
+<option value="Garbage">Garbage</option>
+<option value="Organic">Organic</option>
+<option value="Other">Other</option>
+</select>
+
+<button onclick="addPickup()">Add Reminder</button>
+
+<h4>Pickup Schedule</h4>
+
+<ul id="pickupList"></ul>
+
+<p>Total Pickups: <span id="totalPickups">0</span></p>
+
+</div>
+
+</div>
+
+
+<!-- ADMIN PANEL -->
+<div class="card" id="adminPanel" style="display:none">
+
+<h3>Admin Dashboard</h3>
+
+<p>Total Users: <span id="adminUsers">0</span></p>
+<p>Total Complaints: <span id="adminComplaints">0</span></p>
+<p>Total Pickups: <span id="adminPickups">0</span></p>
+
+<h4>Filter Complaints by User</h4>
+
+<select id="userFilter" onchange="filterComplaints()">
+<option value="all">Show All</option>
+</select>
+
+<h4>Filter Complaints by Date</h4>
+
+From:
+<input type="date" id="fromDate">
+
+To:
+<input type="date" id="toDate">
+
+<button onclick="filterComplaintsByDate()">Filter</button>
+
+</div>
+
+
+<!-- SCRIPTS -->
+<script src="firebase.js"></script>
+<script src="script.js"></script>
+
+</body>
 </html>
+```
