@@ -43,10 +43,22 @@
       </div>
     </div>
 
+    <div id="adminPanel" style="display: none">
+      <h3>Admin Dashboard</h3>
+      <p>Total Users: <span id="count"></span></p>
+      <p>Total Complaints: <span id="totalComplaints"></span></p>
+    </div>
+
     <!-- ================= MAIN DASHBOARD ================= -->
     <div id="mainSection" style="display: none">
       <header class="navbar">
-        <div class="logo">♻️ Waste Intelligence</div>
+        <div class="logo">
+          <img
+            src="https://clipground.com/images/swachh-bharat-clipart-logo-3.jpg"
+            class="logo-img"
+          />
+          <span>♻️ Waste Intelligence</span>
+        </div>
 
         <div class="nav-right">
           <span id="welcomeMessage"></span>
@@ -85,15 +97,15 @@
         <!-- PICKUP -->
         <div class="card">
           <h3>Pickup Reminder</h3>
+          <div id="pickupControls" style="display: none">
+            <input type="datetime-local" id="pickupDate" />
 
-          <input type="datetime-local" id="pickupDate" />
+            <select id="pickupType">
+              <option value="Garbage">Garbage</option>
+            </select>
 
-          <select id="pickupType">
-            <option value="Garbage">Garbage</option>
-            <option value="Organic">Organic</option>
-          </select>
-
-          <button onclick="addPickup()">Add</button>
+            <button id="pickupBtn" onclick="addPickup()">Add</button>
+          </div>
 
           <ul id="pickupList"></ul>
         </div>
@@ -103,7 +115,7 @@
     <!-- FOOTER -->
     <footer>
       <p>© 2026 Digital Waste Intelligence Platform</p>
-      <p>Pune Smart City | Hexacore 🚀</p>
+      <p>Ahilyanagar Smart City | Hexacore 🚀</p>
     </footer>
 
     <script src="firebase.js"></script>
