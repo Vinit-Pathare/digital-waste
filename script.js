@@ -1,13 +1,12 @@
-/* ==============================
-GLOBAL VARIABLES
-============================== */
+//GLOBAL VARIABLES
 
 let currentUser = null;
 let isAdmin = false;
 let complaintMarkers = [];
 let map;
-let truckMarker;
+let truckMarkers = [];
 let heatLayer;
+let userArea = null;
 /* ==============================
 AUTHENTICATION
 ============================== */
@@ -31,6 +30,12 @@ function loginUser() {
         document.getElementById("loginMessage").innerText =
           "Invalid Username or Password";
       } else {
+        //user area fetch
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          userArea = data.area; // 👈 IMPORTANT
+        });
+
         currentUser = username;
         document.getElementById("authSection").style.display = "none";
         document.getElementById("mainSection").style.display = "block";
@@ -40,12 +45,19 @@ function loginUser() {
         // 🔴 RESET roles
         isAdmin = false;
 
+        document.getElementById("pickupControls").style.display = "none";
+
         // ✅ ADMIN LOGIN
         if (username === "admin") {
           isAdmin = true;
 
           document.getElementById("adminPanel").style.display = "block";
           document.getElementById("heatmapBtn").style.display = "block";
+          //show full con
+          document.getElementById("pickupControls").style.display = "block";
+
+          //show pickup butt
+          document.getElementById("pickupBtn").style.display = "block";
         }
 
         // 🚚 DRIVER LOGIN
@@ -63,10 +75,16 @@ function loginUser() {
         if (username !== "admin" && username !== "driver") {
           document.getElementById("adminPanel").style.display = "none";
           document.getElementById("heatmapBtn").style.display = "none";
+          //
+          document.getElementById("pickupControls").style.display = "none";
+          //hide pick butt
+          document.getElementById("pickupBtn").style.display = "none";
         }
 
         document.getElementById("welcomeMessage").innerText =
           "Welcome " + username;
+
+        startVehicleTracking();
 
         loadComplaints();
       }
@@ -91,6 +109,7 @@ function registerUser() {
     .add({
       username: username,
       password: password,
+      area: "Ward 1", //add
       createdAt: new Date(),
     })
     .then(() => {
@@ -114,7 +133,8 @@ PAGE LOAD
 window.onload = function () {
   initMap();
 
-  startVehicleTracking();
+  //startVehicleTracking();
+  requestNotificationPermission();
 
   loadUserCount();
 
@@ -126,11 +146,16 @@ MAP SYSTEM
 ============================== */
 
 function initMap() {
-  map = L.map("map").setView([18.5204, 73.8567], 13);
+  map = L.map("map").setView([19.0948, 74.748], 13);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap",
   }).addTo(map);
+
+  L.marker([19.0948, 74.748])
+    .addTo(map)
+    .bindPopup("📍 Ahilyanagar City Center")
+    .openPopup();
 }
 
 function startVehicleTracking() {
@@ -139,21 +164,37 @@ function startVehicleTracking() {
     iconSize: [40, 40],
   });
 
-  truckMarker = L.marker([18.5204, 73.8567], {
-    icon: truckIcon,
-  }).addTo(map);
-
   // 🔥 REALTIME TRACKING FROM FIRESTORE (ADMIN / USER VIEW)
-  db.collection("truck")
-    .doc("live")
-    .onSnapshot((doc) => {
-      if (doc.exists) {
-        const data = doc.data();
-        truckMarker.setLatLng([data.lat, data.lng]);
-      }
+  db.collection("trucks")
+    .where("area", "==", userArea) // 👈 MAGIC
+    .onSnapshot((snapshot) => {
+      truckMarkers.forEach((m) => map.removeLayer(m));
+      truckMarkers = [];
+
+      snapshot.forEach((doc) => {
+        const t = doc.data();
+
+        if (t.lat && t.lng) {
+          const marker = L.marker([t.lat, t.lng], {
+            icon: truckIcon,
+          }).addTo(map);
+
+          marker.bindPopup(
+            "🚚 Truck: " +
+              t.truckNumber +
+              "<br>Driver: " +
+              t.driverName +
+              "<br>Area: " +
+              t.area +
+              "<br>Status: " +
+              t.status,
+          );
+
+          truckMarkers.push(marker);
+        }
+      });
     });
 }
-
 /* ==============================
 COMPLAINT SYSTEM
 ============================== */
@@ -233,14 +274,13 @@ function loadComplaints() {
         const navBtn = document.createElement("button");
         navBtn.innerText = "Navigate";
 
-        navBtn.onclick = function () {
-          const url =
+        navBtn.onclick = () => {
+          window.open(
             "https://www.google.com/maps/dir/?api=1&destination=" +
-            c.lat +
-            "," +
-            c.lng;
-
-          window.open(url, "_blank");
+              c.lat +
+              "," +
+              c.lng,
+          );
         };
 
         li.appendChild(navBtn);
@@ -308,8 +348,14 @@ PICKUP SYSTEM
 ============================== */
 
 function addPickup() {
+  if (!isAdmin) {
+    alert("Only admin can add pickup");
+    return;
+  }
   const date = document.getElementById("pickupDate").value;
   const type = document.getElementById("pickupType").value;
+
+  console.log(date, type);
 
   if (date === "") {
     alert("Select date");
@@ -320,36 +366,67 @@ function addPickup() {
     .add({
       date: date,
       type: type,
+      createdAt: new Date(),
     })
     .then(() => {
       alert("Pickup reminder added");
 
       loadPickups();
+    })
+    .catch((e) => {
+      console.error(e);
     });
 }
+let shownPickups = new Set();
 
 function loadPickups() {
   const list = document.getElementById("pickupList");
 
-  list.innerHTML = "";
+  db.collection("pickups").onSnapshot((snapshot) => {
+    list.innerHTML = "";
 
-  db.collection("pickups")
-    .get()
-    .then((snapshot) => {
-      snapshot.forEach((doc) => {
-        const p = doc.data();
+    snapshot.forEach((doc) => {
+      const p = doc.data();
 
-        const li = document.createElement("li");
+      const li = document.createElement("li");
 
-        li.innerText = p.type + " | " + p.date;
+      const dateObj = new Date(p.date);
+      li.innerText = `${p.type} | ${dateObj.toLocaleString()}`;
 
-        list.appendChild(li);
-      });
+      list.appendChild(li);
 
-      document.getElementById("totalPickups").innerText = snapshot.size;
+      // 🔔 NEW PICKUP NOTIFICATION
+      if (!shownPickups.has(doc.id)) {
+        showNotification("📢 New Pickup Scheduled!");
+        shownPickups.add(doc.id);
+      }
+
+      // 🔔 TIME BASED REMINDER
+      const now = new Date();
+      const pickupTime = new Date(p.date);
+      const diffMs = pickupTime - now;
+
+      // exact time
+      if (diffMs > 0) {
+        setTimeout(() => {
+          showNotification("🚚 Pickup Time Now!");
+        }, diffMs);
+      }
+
+      // 10 min before
+      if (diffMs > 10 * 60 * 1000) {
+        setTimeout(
+          () => {
+            showNotification("🚚 Pickup in 10 minutes!");
+          },
+          diffMs - 10 * 60 * 1000,
+        );
+      }
     });
-}
 
+    document.getElementById("totalPickups").innerText = snapshot.size;
+  });
+}
 /* ==============================
 PHOTO UPLOAD (TEMP)
 ============================== */
@@ -407,13 +484,12 @@ function startDriverTracking() {
     return;
   }
 
-  navigator.geolocation.watchPosition((position) => {
-    const lat = position.coords.latitude;
-    const lng = position.coords.longitude;
+  const truckId = "aJn5Yt3a9nuMGFCzXzht";
 
-    db.collection("truck").doc("live").set({
-      lat: lat,
-      lng: lng,
+  navigator.geolocation.watchPosition((pos) => {
+    db.collection("trucks").doc(truckId).update({
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
       updatedAt: new Date(),
     });
 
@@ -434,4 +510,21 @@ function logoutUser() {
   document.getElementById("loginPassword").value = "";
 
   document.getElementById("welcomeMessage").innerText = "";
+}
+
+function requestNotificationPermission() {
+  if ("Notification" in window) {
+    Notification.requestPermission();
+  }
+}
+
+function showNotification(message) {
+  if (Notification.permission === "granted") {
+    new Notification("Waste Alert ♻️", {
+      body: message,
+      icon: "https://cdn-icons-png.flaticon.com/512/1995/1995505.png",
+    });
+  } else {
+    alert(message); // fallback
+  }
 }
