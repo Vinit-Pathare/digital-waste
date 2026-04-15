@@ -273,39 +273,52 @@ header button:hover {
 
 /*edited version
 /* FACEBOOK STYLE LOGIN */
+/* RESET */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* BODY */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f0f2f5; /* Facebook bg */
+}
+
+/* ================= LOGIN PAGE ================= */
+
 .login-page {
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f0f2f5;
 }
 
 .login-container {
   display: flex;
-  max-width: 900px;
-  width: 100%;
+  width: 900px;
   justify-content: space-between;
   align-items: center;
 }
 
-/* LEFT */
+/* LEFT SIDE */
 .login-left {
   flex: 1;
-  padding: 20px;
 }
 
 .login-left h1 {
-  font-size: 40px;
-  color: #16a34a;
+  font-size: 48px;
+  color: #1877f2; /* Facebook blue feel */
+  margin-bottom: 10px;
 }
 
 .login-left p {
-  font-size: 18px;
-  color: #333;
+  font-size: 20px;
+  color: #1c1e21;
 }
 
-/* RIGHT */
+/* RIGHT SIDE */
 .login-right {
   flex: 1;
   display: flex;
@@ -314,36 +327,107 @@ header button:hover {
 
 .login-card {
   background: white;
-  padding: 25px;
-  width: 320px;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  width: 350px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-.login-card h3 {
+/* INPUT */
+.login-card input {
+  width: 100%;
+  padding: 12px;
   margin-bottom: 10px;
-}
-
-.login-card h4 {
-  margin-top: 15px;
+  border: 1px solid #dddfe2;
+  border-radius: 6px;
   font-size: 14px;
-  color: #555;
 }
 
-/* BUTTON STYLE */
+/* LOGIN BUTTON */
 .login-card button {
   width: 100%;
-  background: #16a34a;
-  margin-top: 10px;
+  padding: 12px;
+  background: #1877f2;
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .login-card button:hover {
-  background: #15803d;
+  background: #166fe5;
+}
+
+/* REGISTER BUTTON */
+.login-card .register-btn {
+  background: #42b72a;
+}
+
+.login-card .register-btn:hover {
+  background: #36a420;
 }
 
 /* HR */
 .login-card hr {
   margin: 15px 0;
+}
+
+/* ================= NAVBAR ================= */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.brand {
+  font-weight: bold;
+  color: #16a34a;
+}
+
+/* ================= DASHBOARD ================= */
+
+.container {
+  max-width: 1000px;
+  margin: 20px auto;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* CARD */
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  flex: 1 1 300px;
+  border: 1px solid #ddd;
+}
+
+/* INPUT */
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+/* BUTTON */
+button {
+  background: #16a34a;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+}
+
+button:hover {
+  background: #15803d;
 }
 
 /* MOBILE */
@@ -352,54 +436,7 @@ header button:hover {
     flex-direction: column;
     text-align: center;
   }
-
-  .login-left {
-    margin-bottom: 20px;
-  }
 }
-
-/* NAVBAR CLEAN FACEBOOK STYLE */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: white;
-  padding: 10px 20px;
-  border-bottom: 1px solid #ddd;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-/* LEFT */
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.logo-img {
-  height: 35px;
-}
-
-.brand {
-  font-size: 18px;
-  font-weight: 600;
-  color: #16a34a;
-}
-
-/* RIGHT */
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.user-name {
-  font-size: 14px;
-  color: #333;
-}
-
 /* LOGOUT BUTTON */
 #logoutBtn {
   background: #e4e6eb;
