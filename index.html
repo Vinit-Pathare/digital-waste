@@ -1,44 +1,136 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Waste Intelligence</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Digital Waste Intelligence Platform</title>
 
-  <link rel="stylesheet" href="style.css">
-</head>
+    <link rel="stylesheet" href="style.css" />
 
-<body>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
-<!-- LOGIN PAGE -->
-<div class="login-page">
-  <div class="login-container">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  </head>
 
-    <!-- LEFT -->
-    <div class="login-left">
-      <h1>Waste Intelligence</h1>
-      <p>Smart garbage management system for cleaner cities 🚀</p>
-    </div>
+  <body>
+    <!-- ================= LOGIN PAGE ================= -->
+    <div id="authSection" class="login-page">
+      <div class="login-container">
+        <!-- LEFT SIDE -->
+        <div class="login-left">
+          <h1>♻️ Waste Intelligence</h1>
+          <p>
+            Smart garbage management system <br />
+            for cleaner cities 🚀
+          </p>
+        </div>
 
-    <!-- RIGHT -->
-    <div class="login-right">
-      <div class="login-card">
+        <!-- RIGHT SIDE -->
+        <div class="login-right">
+          <div class="login-card">
+            <h3>Login</h3>
 
-        <h3>Login</h3>
-        <input placeholder="Email or Username">
-        <input type="password" placeholder="Password">
+            <input id="loginUsername" placeholder="Username" />
+            <input type="password" id="loginPassword" placeholder="Password" />
 
-        <button>Login</button>
+            <button onclick="loginUser()">Login</button>
 
-        <hr>
+            <p id="loginMessage"></p>
 
-        <button class="register-btn">Create New Account</button>
+            <hr />
 
+            <h4>Create Account</h4>
+
+            <input id="username" placeholder="Username" />
+            <input type="password" id="password" placeholder="Password" />
+
+            <button onclick="registerUser()">Register</button>
+
+            <p id="message"></p>
+          </div>
+        </div>
       </div>
     </div>
 
-  </div>
-</div>
+    <div id="adminPanel" style="display: none">
+      <h3>Admin Dashboard</h3>
+      <p>Total Users: <span id="count"></span></p>
+      <p>Total Complaints: <span id="totalComplaints"></span></p>
+    </div>
 
-</body>
+    <!-- ================= MAIN DASHBOARD ================= -->
+    <div id="mainSection" style="display: none">
+      <header class="navbar">
+        <div class="nav-left">
+          <img
+            src="https://clipground.com/images/swachh-bharat-clipart-logo-3.jpg"
+            class="logo-img"
+          />
+          <span class="brand">Waste Intelligence</span>
+        </div>
+
+        <div class="nav-right">
+          <span id="welcomeMessage" class="user-name"></span>
+          <button id="logoutBtn" onclick="logoutUser()">Logout</button>
+        </div>
+      </header>
+
+      <div class="container">
+        <!-- MAP -->
+        <div class="card" style="max-width: 1000px; width: 100%">
+          <h3>Live Vehicle Tracking</h3>
+          <div id="map" style="height: 400px"></div>
+          <button id="heatmapBtn" onclick="generateHeatmap()">Heatmap</button>
+        </div>
+
+        <!-- COMPLAINT -->
+        <div class="card">
+          <h3>Report Complaint</h3>
+
+          <input type="text" id="complaintText" placeholder="Enter Complaint" />
+
+          <select id="category">
+            <option value="Garbage">Garbage</option>
+            <option value="Missed Pickup">Missed Pickup</option>
+            <option value="Other">Other</option>
+          </select>
+
+          <button onclick="addComplaint()">Submit</button>
+
+          <h4>Complaints</h4>
+          <ul id="complaintList"></ul>
+        </div>
+
+        <!-- PICKUP -->
+        <div class="card">
+          <h3>Pickup Reminder</h3>
+          <div id="pickupControls" style="display: none">
+            <input type="datetime-local" id="pickupDate" />
+
+            <select id="pickupType">
+              <option value="Garbage">Garbage</option>
+            </select>
+
+            <button id="pickupBtn" onclick="addPickup()">Add</button>
+          </div>
+
+          <ul id="pickupList"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>© 2026 Digital Waste Intelligence Platform</p>
+      <p>Ahilyanagar Smart City | Hexacore 🚀</p>
+    </footer>
+
+    <script src="firebase.js"></script>
+    <script src="script.js"></script>
+  </body>
 </html>
